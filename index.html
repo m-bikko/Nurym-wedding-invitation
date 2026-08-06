@@ -317,6 +317,73 @@
   }
   .btn-map:hover { background: var(--ink); color: #fff; }
 
+  /* ---------- RSVP ---------- */
+  .rsvp {
+    text-align: center;
+    padding: .6rem 1.6rem 3rem;
+  }
+  .rsvp .caps-lead {
+    font-size: .95rem; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase;
+    line-height: 1.7;
+    margin-bottom: 1.2rem;
+  }
+  .rsvp .script-h { font-size: clamp(1.9rem, 7.5vw, 2.3rem); margin-bottom: .9rem; }
+  .rsvp input[type="text"] {
+    width: 100%;
+    border: 1px solid #cfcfcf;
+    border-radius: 4px;
+    background: #fff;
+    font-family: var(--sans);
+    font-size: 1rem;
+    padding: .8rem .9rem;
+    color: var(--ink);
+    outline: none;
+  }
+  .rsvp input[type="text"]:focus { border-color: var(--sage); }
+  .rsvp .note {
+    font-size: .78rem; color: var(--ink-soft);
+    text-align: left;
+    margin: .7rem 0 1.1rem;
+    line-height: 1.55;
+  }
+  .rsvp .opt {
+    display: flex; align-items: center; gap: .7rem;
+    background: var(--field-gray);
+    border-radius: 6px;
+    padding: .78rem .9rem;
+    margin-bottom: .6rem;
+    font-size: .92rem;
+    cursor: pointer;
+    text-align: left;
+    transition: background .25s ease;
+  }
+  .rsvp .opt:hover { background: #e2e2e0; }
+  .rsvp .opt input { accent-color: var(--script-green); width: 1.05rem; height: 1.05rem; flex: none; }
+  .rsvp .opt.selected { background: #dde2d2; }
+  .btn-send {
+    width: 100%;
+    border: none;
+    background: var(--sage);
+    color: #fff;
+    font-family: var(--sans);
+    font-size: .95rem; font-weight: 600;
+    letter-spacing: .06em;
+    border-radius: 6px;
+    padding: .85rem;
+    margin-top: .5rem;
+    cursor: pointer;
+    transition: background .3s ease;
+  }
+  .btn-send:hover { background: #99a181; }
+  .rsvp-done {
+    display: none;
+    font-family: var(--script);
+    font-size: 1.9rem;
+    color: var(--script-green);
+    margin-top: 1rem;
+  }
+
   /* ---------- КЕРІ САНАҚ ---------- */
   .countdown-sec {
     text-align: center;
@@ -462,6 +529,24 @@
        target="_blank" rel="noopener">Карта</a>
   </section>
 
+  <!-- ======== RSVP ======== -->
+  <section class="rsvp">
+    <p class="caps-lead reveal">Тойға қатысуыңызды растауыңызды сұраймыз!</p>
+    <h2 class="script-h reveal">Аты-жөніңіз:</h2>
+
+    <form id="rsvpForm" class="reveal">
+      <input type="text" id="rsvpName" name="name" autocomplete="name" aria-label="Аты-жөніңіз">
+      <p class="note">(Жұбыңызбен келетін болсаңыз, есімдеріңізді бірге жазуыңызды өтінеміз)*</p>
+
+      <label class="opt"><input type="radio" name="attend" value="Келемін" checked> Келемін</label>
+      <label class="opt"><input type="radio" name="attend" value="Жұбыммен келемін"> Жұбыммен келемін</label>
+      <label class="opt"><input type="radio" name="attend" value="Өкінішке орай, қатыса алмаймын"> Өкінішке орай, қатыса алмаймын</label>
+
+      <button class="btn-send" type="submit">Жіберу</button>
+    </form>
+    <p class="rsvp-done" id="rsvpDone">Рақмет! Жауабыңыз қабылданды</p>
+  </section>
+
   <!-- ======== КЕРІ САНАҚ ======== -->
   <section class="countdown-sec">
     <h2 class="script-h reveal">Тойға дейін</h2>
@@ -485,6 +570,9 @@
 <script>
 (function () {
   'use strict';
+
+  // Куда отправлять RSVP-ответы: номер WhatsApp в международном формате (без +).
+  var RSVP_WHATSAPP_PHONE = '77024870485';
 
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -572,6 +660,27 @@
     });
   }, { threshold: 0.2, rootMargin: '0px 0px -6% 0px' });
   document.querySelectorAll('.reveal, .calendar').forEach(function (el) { io.observe(el); });
+
+  /* ---------- RSVP ---------- */
+  var form = document.getElementById('rsvpForm');
+  document.querySelectorAll('.rsvp .opt input').forEach(function (r) {
+    r.addEventListener('change', function () {
+      document.querySelectorAll('.rsvp .opt').forEach(function (o) { o.classList.remove('selected'); });
+      r.closest('.opt').classList.add('selected');
+    });
+  });
+  form.addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var name = document.getElementById('rsvpName').value.trim();
+    if (!name) { document.getElementById('rsvpName').focus(); return; }
+    var attend = form.querySelector('input[name="attend"]:checked').value;
+    if (RSVP_WHATSAPP_PHONE) {
+      var msg = 'Сәлеметсіз бе! Нұрым мен Каринаның тойына жауап: ' + name + ' — ' + attend;
+      window.open('https://wa.me/' + RSVP_WHATSAPP_PHONE + '?text=' + encodeURIComponent(msg), '_blank');
+    }
+    form.style.display = 'none';
+    document.getElementById('rsvpDone').style.display = 'block';
+  });
 
   /* ---------- кері санақ: 12.09.2026 18:00 (Астана, UTC+5) ---------- */
   var TARGET = new Date('2026-09-12T18:00:00+05:00').getTime();
